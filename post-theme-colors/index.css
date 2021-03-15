@@ -1,7 +1,6 @@
 a {
-  color: #eee;
+    color: #eee;
 }
-  html[data-theme="dark"] a {
-  color: #111;
+    html[data-theme="dark"] a {
+    color: #111;
 }
-/*# sourceMappingURL=index.css.map */

@@ -9,7 +9,9 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "postcss": "^8.2.8",
     "postcss-nested": "^5.0.5"
+  },
+  "peerDependencies": {
+    "postcss": "^^8.2.8"
   }
 }

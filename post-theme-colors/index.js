@@ -6,16 +6,13 @@ const colors = {
 }
 const groups = {
   G01: ['C01', 'C02'],
+  G02: ['C01', 'C02'],
 }
 
-const css = `a {
-  color: cc(G01);
-}`
+const css = fs.readFileSync('source.css')
 postcss([
   require('./postcss-theme-colors')({ colors, groups }),
   require('postcss-nested')
-]).process(css, { from: 'source.css',to: 'index.css',  map: { inline: false },}).then(res => {
-  console.log(res.css)
+]).process(css).then(res => {
   fs.writeFileSync('index.css', res.css)
-  console.log(res.map)
 })

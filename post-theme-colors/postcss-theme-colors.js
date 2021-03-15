@@ -1,14 +1,22 @@
 const postcss = require('postcss')
 
 const defaults = {
-  function: 'cc',
-  groups: {},
-  colors: {},
-  useCustomProperties: false,
-  darkThemeSelector: 'html[data-theme="dark"]',
-  nestingPlugin: null
+  function: 'cc', // 自定义CSS方法名
+  groups: {}, // 存储色值分组
+  colors: {}, // 存储所有色值
+  useCustomProperties: false,// 是否使用自定义属性
+  darkThemeSelector: 'html[data-theme="dark"]', // 夜间模式选择器
+  nestingPlugin: null // 添加选择器的插件
 }
 
+/**
+ * 计算最终色值
+ * @param options
+ * @param theme
+ * @param group
+ * @param defaultValue
+ * @returns {string|*}
+ */
 const resolveColor = (options, theme, group, defaultValue) => {
   const [lightColor, darkColor] = options.groups[group] || []
   const color = theme === 'dark' ? darkColor : lightColor
@@ -21,13 +29,16 @@ const resolveColor = (options, theme, group, defaultValue) => {
   return options.colors[color] || defaultValue
 }
 
+//
 module.exports = options => {
   options = Object.assign({}, defaults, options)
   // 获取色值函数（默认为 cc()）
   const reGroup = new RegExp(`\\b${options.function}\\(([^)]+)\\)`, 'g')
   return {
-    postcssPlugin: 'postcss-theme-colors',
-    Once(style, { result }) {
+    postcssPlugin: 'postcss-theme-colors', // 定义插件名
+    Once(root, { result }) {
+      // console.log(root)
+      // console.log(result)
       // 判断 PostCSS 工作流程中，是否使用了某些 plugins
       const hasPlugin = name =>
         name.replace(/^postcss-/, '') === options.nestingPlugin ||
@@ -40,7 +51,8 @@ module.exports = options => {
       }
 
       // 遍历 CSS 声明
-      style.walkDecls(decl => {
+      root.walkDecls(decl => {
+        console.log(decl)
         const value = decl.value
         // 如果不含有色值函数调用，则提前退出
         if (!value || !reGroup.test(value)) {
