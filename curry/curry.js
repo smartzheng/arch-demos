@@ -22,40 +22,18 @@ const curry = (fn, length) => {
 //       ? fn(...arg1) // 执行函数
 //       : (...arg2) => judge(...arg1, ...arg2) // 将参数合并，继续递归调用
 
+
 const lowerThan = (num, array) => {
   return array.filter(item => item < num)
 }
 // let result1 = lowerThan(10, [1, 2, 3, 11])
 // console.log(result1)
 
+const num = 10
+const array = [1, 2, 3, 11]
+lowerThan(num, array) // [1, 2, 3]
 
-// 柯里化
 const curryLowerThan = curry(lowerThan)
-console.log(curryLowerThan.toString())
 
-let result2 = curryLowerThan(10)([1, 2, 3, 11])
-// function (...args, length) { // args: num
-//   length = length || fn.length
-//   // 当参数未满时，递归调用
-//   if (args.length < length) { // fn: lowerThan, args.length: 1, length: 2
-//     return curry(fn.bind(this, ...args), length - args.length)
-//   }
-//   // 参数已满，执行 fn 函数
-//   else {
-//     return fn.call(this, ...args) // args: num, array
-//   }
-// }
-// let result3 = curryLowerThan(10, [1, 2, 3, 11])
-// function (...args, length) { // args: num, array
-//   length = length || fn.length
-//   // 当参数未满时，递归调用
-//   if (args.length < length) { // fn: lowerThan, length: 2
-//     return curry(fn.bind(this, ...args), length - args.length)
-//   }
-//   // 参数已满，执行 fn 函数
-//   else {
-//     return fn.call(this, ...args) // args: num, array
-//   }
-// }
-console.log(result2)
-// console.log(result3)
+curryLowerThan(num)(array) // [1, 2, 3]
+curryLowerThan(num, array) // [1, 2, 3]
