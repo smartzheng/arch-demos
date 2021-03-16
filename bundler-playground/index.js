@@ -1,12 +1,17 @@
 const fs = require('fs')
 const path = require('path')
-const parser = require('@babel/parser')
+const parser = require('@babel/parser') // AST 解析器
 const traverse = require('@babel/traverse').default
 const babel = require('@babel/core')
 const resolve = require('resolve').sync
 
 let ID = 0
 
+/**
+ * 根据文件路径创建module信息对象
+ * @param filePath
+ * @returns {{code, filePath, deps: [], id: number}}
+ */
 function createModuleInfo(filePath) {
   // 读取模块源代码
   const content = fs.readFileSync(filePath, 'utf-8')
@@ -28,15 +33,20 @@ function createModuleInfo(filePath) {
     presets: ['@babel/preset-env']
   })
   return {
-    id,
-    filePath,
-    deps,
-    code
+    id, // 该模块ID
+    filePath, //该模块路径
+    deps, //该模块依赖的模块数组
+    code //该模块的转换后代码
   }
 }
 
+/**
+ * 根据入口文件生成项目依赖树
+ * @param entry
+ * @returns {[]} 项目依赖树
+ */
 function createDependencyGraph(entry) {
-  // 获取模块信息
+  // 获取入口模块信息
   const entryInfo = createModuleInfo(entry)
   // 项目依赖树
   const graphArr = []
@@ -47,14 +57,25 @@ function createDependencyGraph(entry) {
     module.deps.forEach(depPath => {
       const baseDir = path.dirname(module.filePath)
       const moduleDepPath = resolve(depPath, { baseDir })
-      const moduleInfo = createModuleInfo(moduleDepPath)
-      graphArr.push(moduleInfo)
-      module.map[depPath] = moduleInfo.id
+      const moduleInfo = createModuleInfo(moduleDepPath) // 获取每个依赖的模块信息
+      graphArr.push(moduleInfo) // 将每个模块信息推入 graphArr 中
+      module.map[depPath] = moduleInfo.id // map 以{depPath: id}形式维护module的依赖
     })
   }
   return graphArr
 }
 
+/**
+ * 打包生成最终代码
+ * 使用 IIFE 的方式，来保证模块变量不会影响到全局作用域。
+ * 构造好的项目依赖树（Dependency Graph）数组，将会作为名为modules的行参，传递给 IIFE。
+ * 我们构造了require(id)方法，这个方法的意义在于：
+ *  通过require(map[requireDeclarationName])方式，按顺序递归调用各个依赖模块；
+ *  通过调用factory(module.exports, localRequire)执行模块相关代码；
+ *  该方法最终返回module.exports对象，module.exports 最初值为空对象（{exports: {}}），但在一次次调用factory()函数后，module.exports对象内容已经包含了模块对外暴露的内容了。
+ * @param graph 依赖树
+ * @returns {string} 最终代码iifeBundler
+ */
 function pack(graph) {
   const moduleArgArr = graph.map(module => {
     return `${module.id}: {
@@ -64,6 +85,7 @@ function pack(graph) {
                 map: ${JSON.stringify(module.map)}
             }`
   })
+
   const iifeBundler = `(function(modules){
             const require = id => {
                 const {factory, map} = modules[id];
@@ -72,9 +94,9 @@ function pack(graph) {
                 factory(module.exports, localRequire); 
                 return module.exports; 
             }
-            require(0);
+            require(0); // 加载入口
             
-            })({${moduleArgArr.join()}})
+            })({${moduleArgArr.join()}}) // 转换为'{id1:module1, id2: module2}', module内部为{factory, map}, 作为iife的入参
         `
   return iifeBundler
 }

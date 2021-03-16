@@ -6,12 +6,17 @@
     factory(module.exports, localRequire)
     return module.exports
   }
-  require(0)
+  console.log(require(0)) // 加载入口
 
 })({
   0: {
     factory: (exports, require) => {
       'use strict'
+
+      Object.defineProperty(exports, '__esModule', {
+        value: true
+      })
+      exports['default'] = void 0
 
       var _square = _interopRequireDefault(require('./square'))
 
@@ -23,10 +28,14 @@
 
       console.log('Area of square: ', (0, _square['default'])(5))
       console.log('Area of circle', (0, _circle['default'])(5))
+
+      var _default = function _default() {
+      }
+
+      exports['default'] = _default
     },
     map: { './square': 1, './circle': 2 }
-  },
-  1: {
+  }, 1: {
     factory: (exports, require) => {
       'use strict'
 
@@ -40,8 +49,7 @@
       }
     },
     map: {}
-  },
-  2: {
+  }, 2: {
     factory: (exports, require) => {
       'use strict'
 
@@ -57,4 +65,4 @@
     },
     map: {}
   }
-})
+}) // 转换为'{id1:module1, id2: module2}', module内部为{factory, map}, 作为iife的入参
