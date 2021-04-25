@@ -1,0 +1,3 @@
+function inherit(Child, Parent) {
+
+}
