@@ -1,3 +1,22 @@
-const babel = require('babel-core')
-const result = babel.transform('const fun = (n) => n * n;', { presets: ['es2015'] })
-console.log(result.code)
+const { transformFromAstSync } = require('@babel/core');
+const  parser = require('@babel/parser');
+const autoI18nPlugin = require('../plugins/auto_trans');
+const fs = require('fs');
+const path = require('path');
+
+const sourceCode = fs.readFileSync(path.join(__dirname, './auto_trans.js'), {
+  encoding: 'utf-8'
+});
+
+const ast = parser.parse(sourceCode, {
+  sourceType: 'unambiguous',
+  plugins: ['jsx']
+});
+
+const { code } = transformFromAstSync(ast, sourceCode, {
+  plugins: [[autoI18nPlugin, {
+    outputDir: path.resolve(__dirname, './output')
+  }]]
+});
+
+console.log(code);
